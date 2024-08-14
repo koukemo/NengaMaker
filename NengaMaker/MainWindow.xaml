@@ -16,9 +16,8 @@
             <Button Content="プレビュー更新" Click="UpdatePreviewButton_Click" Margin="10"/>
             <Button Content="印刷" Click="PrintButton_Click" Margin="10"/>
             <Button Content="画像で出力" Click="ExportImageButton_Click" Margin="10"/>
-            <!-- 画像で出力ボタンを追加 -->
+            <Button Content="連続印刷" Click="PrintAllButton_Click" Margin="10"/>
         </StackPanel>
         <Canvas Grid.Column="1" Name="previewCanvas" Width="394" Height="583" Background="White" Margin="10"/>
-        <!-- 1/3スケール -->
     </Grid>
 </Window>
