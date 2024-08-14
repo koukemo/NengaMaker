@@ -19,6 +19,8 @@ namespace NengaMaker
         private string recipientPostalCode;
         private string recipientAddress1;
         private string recipientAddress2;
+        private string excelFilePath; // Excelファイルのパスを保持
+        private int rowCount;
 
         public MainWindow()
         {
@@ -44,7 +46,7 @@ namespace NengaMaker
             Canvas printCanvas = CreatePrintCanvas(); // フルサイズの印刷用キャンバスを作成
             string tempPngPath = System.IO.Path.GetTempFileName() + ".png";
             SaveCanvasAsImage(printCanvas, tempPngPath);
-            ConvertPngToPdf(tempPngPath);
+            ShowPrintDialog(tempPngPath, null, true); // 印刷先を決定するダイアログを表示
         }
 
         private void ExportImageButton_Click(object sender, RoutedEventArgs e)
@@ -55,6 +57,72 @@ namespace NengaMaker
             {
                 Canvas imageCanvas = CreatePrintCanvas(); // フルサイズのキャンバスを作成
                 SaveCanvasAsImage(imageCanvas, saveFileDialog.FileName);
+            }
+        }
+
+        private void PrintAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(excelFilePath))
+            {
+                MessageBox.Show("Excelファイルを読み込んでください。", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            PrintDialog printDialog = new PrintDialog();
+            if (printDialog.ShowDialog() == true)
+            {
+                bool isPrintToPdf = printDialog.PrintQueue.Name == "Microsoft Print to PDF";
+                string baseFilePath = null;
+
+                if (isPrintToPdf)
+                {
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.Filter = "PDF Files|*.pdf";
+                    if (saveFileDialog.ShowDialog() == true)
+                    {
+                        baseFilePath = saveFileDialog.FileName;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+
+                using (var package = new ExcelPackage(new FileInfo(excelFilePath)))
+                {
+                    var worksheet = package.Workbook.Worksheets[0];
+                    rowCount = worksheet.Dimension.Rows;
+
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        recipientName = worksheet.Cells[row, 2].Text;
+                        recipientFurigana = worksheet.Cells[row, 3].Text;
+                        recipientPostalCode = worksheet.Cells[row, 4].Text;
+                        recipientAddress1 = worksheet.Cells[row, 5].Text;
+                        recipientAddress2 = worksheet.Cells[row, 6].Text;
+
+                        Canvas printCanvas = CreatePrintCanvas(); // フルサイズの印刷用キャンバスを作成
+                        string tempPngPath = System.IO.Path.GetTempFileName() + ".png";
+                        SaveCanvasAsImage(printCanvas, tempPngPath);
+
+                        if (isPrintToPdf)
+                        {
+                            string directory = Path.GetDirectoryName(baseFilePath);
+                            string baseFileName = Path.GetFileNameWithoutExtension(baseFilePath);
+                            string pdfFilePath = Path.Combine(directory, $"{baseFileName}_{row - 1}.pdf");
+                            ConvertPngToPdf(tempPngPath, pdfFilePath, false); // PDF作成時のメッセージ表示を抑制
+                        }
+                        else
+                        {
+                            printDialog.PrintVisual(printCanvas, "Nenga Print");
+                        }
+                    }
+                }
+
+                if (isPrintToPdf)
+                {
+                    MessageBox.Show("すべてのPDFが保存されました。", "保存完了", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             }
         }
 
@@ -192,11 +260,11 @@ namespace NengaMaker
 
             if (openFileDialog.ShowDialog() == true)
             {
-                string filePath = openFileDialog.FileName;
+                excelFilePath = openFileDialog.FileName;
 
-                using (var package = new ExcelPackage(new FileInfo(filePath)))
+                using (var package = new ExcelPackage(new FileInfo(excelFilePath)))
                 {
-                    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+                    var worksheet = package.Workbook.Worksheets[0];
 
                     // 2行目からデータを読み込む（見出し行を飛ばす）
                     recipientName = worksheet.Cells[2, 2].Text;
@@ -262,29 +330,58 @@ namespace NengaMaker
             }
         }
 
-        private void ConvertPngToPdf(string pngPath)
+        private void ConvertPngToPdf(string pngPath, string pdfPath = null, bool showMessage = true)
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "PDF Files|*.pdf";
-            if (saveFileDialog.ShowDialog() == true)
+            if (pdfPath == null)
             {
-                string pdfPath = saveFileDialog.FileName;
-
-                PdfSharp.Pdf.PdfDocument document = new PdfSharp.Pdf.PdfDocument();
-                PdfSharp.Pdf.PdfPage page = document.AddPage();
-                PdfSharp.Drawing.XGraphics gfx = PdfSharp.Drawing.XGraphics.FromPdfPage(page);
-
-                using (FileStream fs = new FileStream(pngPath, FileMode.Open, FileAccess.Read))
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "PDF Files|*.pdf";
+                if (saveFileDialog.ShowDialog() == true)
                 {
-                    PdfSharp.Drawing.XImage image = PdfSharp.Drawing.XImage.FromStream(fs);
-                    gfx.DrawImage(image, 0, 0, page.Width, page.Height);
+                    pdfPath = saveFileDialog.FileName;
                 }
+                else
+                {
+                    return;
+                }
+            }
 
-                document.Save(pdfPath);
+            PdfSharp.Pdf.PdfDocument document = new PdfSharp.Pdf.PdfDocument();
+            PdfSharp.Pdf.PdfPage page = document.AddPage();
+            PdfSharp.Drawing.XGraphics gfx = PdfSharp.Drawing.XGraphics.FromPdfPage(page);
+
+            using (FileStream fs = new FileStream(pngPath, FileMode.Open, FileAccess.Read))
+            {
+                PdfSharp.Drawing.XImage image = PdfSharp.Drawing.XImage.FromStream(fs);
+                gfx.DrawImage(image, 0, 0, page.Width, page.Height);
+            }
+
+            document.Save(pdfPath);
+
+            if (showMessage)
+            {
                 MessageBox.Show($"PDFが保存されました: {pdfPath}", "保存完了", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
 
-                // 一時PNGファイルを削除
-                File.Delete(pngPath);
+            // 一時PNGファイルを削除
+            File.Delete(pngPath);
+        }
+
+        private void ShowPrintDialog(string tempPngPath, string pdfPath = null, bool showMessage = true)
+        {
+            PrintDialog printDialog = new PrintDialog();
+            if (printDialog.ShowDialog() == true)
+            {
+                if (printDialog.PrintQueue.Name == "Microsoft Print to PDF")
+                {
+                    ConvertPngToPdf(tempPngPath, pdfPath, showMessage);
+                }
+                else
+                {
+                    Canvas printCanvas = CreatePrintCanvas();
+                    SaveCanvasAsImage(printCanvas, tempPngPath);
+                    printDialog.PrintVisual(printCanvas, "Nenga Print");
+                }
             }
         }
     }
