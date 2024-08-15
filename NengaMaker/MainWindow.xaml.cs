@@ -43,6 +43,12 @@ namespace NengaMaker
 
         private void PrintButton_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrEmpty(excelFilePath))
+            {
+                MessageBox.Show("Excelファイルを読み込んでください。", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             Canvas printCanvas = CreatePrintCanvas(); // フルサイズの印刷用キャンバスを作成
             string tempPngPath = System.IO.Path.GetTempFileName() + ".png";
             SaveCanvasAsImage(printCanvas, tempPngPath);
@@ -51,6 +57,12 @@ namespace NengaMaker
 
         private void ExportImageButton_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrEmpty(excelFilePath))
+            {
+                MessageBox.Show("Excelファイルを読み込んでください。", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "PNG Files|*.png";
             if (saveFileDialog.ShowDialog() == true)
@@ -281,6 +293,12 @@ namespace NengaMaker
 
         private void UpdatePreviewButton_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrEmpty(excelFilePath))
+            {
+                MessageBox.Show("Excelファイルを読み込んでください。", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             UpdatePreview();
         }
 
