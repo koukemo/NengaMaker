@@ -4,10 +4,10 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using OfficeOpenXml; // EPPlusの名前空間
+using OfficeOpenXml;
 using System.IO;
-using Microsoft.Win32; // 保存ダイアログのための名前空間
-using PdfSharp.Pdf; // PdfSharpの名前空間
+using Microsoft.Win32;
+using PdfSharp.Pdf;
 using PdfSharp.Drawing;
 
 namespace NengaMaker
@@ -19,28 +19,37 @@ namespace NengaMaker
         private string recipientPostalCode;
         private string recipientAddress1;
         private string recipientAddress2;
-        private string excelFilePath; // Excelファイルのパスを保持
+        private string excelFilePath;
         private int rowCount;
 
+        private string templeteImagePath = "file:///C://Users/javas/Programs/NengaMaker/NengaMaker/figures/postcard_1.png";
+
+        /// <summary>
+        /// Initializes the MainWindow instance and sets up the background image.
+        /// </summary>
         public MainWindow()
         {
             InitializeComponent();
-            // ライセンスコンテキストの設定
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            // プレビューを更新（背景画像を設定）
             SetBackgroundImage();
         }
 
+        /// <summary>
+        /// Sets the background image for the preview canvas.
+        /// </summary>
         private void SetBackgroundImage()
         {
             ImageBrush brush = new ImageBrush();
-            brush.ImageSource = new BitmapImage(new Uri("file:///C://Users/javas/Programs/NengaMaker/NengaMaker/figures/postcard_1.png"));
+            brush.ImageSource = new BitmapImage(new Uri(templeteImagePath));
             brush.Stretch = Stretch.Uniform;
             brush.ViewportUnits = BrushMappingMode.Absolute;
-            brush.Viewport = new Rect(0, 0, 394, 583); // 1/3スケールのサイズ
+            brush.Viewport = new Rect(0, 0, 394, 583);
             previewCanvas.Background = brush;
         }
 
+        /// <summary>
+        /// Handles the Print button click event. Initiates the printing process.
+        /// </summary>
         private void PrintButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(excelFilePath))
@@ -49,12 +58,15 @@ namespace NengaMaker
                 return;
             }
 
-            Canvas printCanvas = CreatePrintCanvas(); // フルサイズの印刷用キャンバスを作成
+            Canvas printCanvas = CreatePrintCanvas();
             string tempPngPath = System.IO.Path.GetTempFileName() + ".png";
             SaveCanvasAsImage(printCanvas, tempPngPath);
-            ShowPrintDialog(tempPngPath, null, true); // 印刷先を決定するダイアログを表示
+            ShowPrintDialog(tempPngPath, null, true);
         }
 
+        /// <summary>
+        /// Handles the Export Image button click event. Exports the canvas as a PNG image.
+        /// </summary>
         private void ExportImageButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(excelFilePath))
@@ -67,11 +79,14 @@ namespace NengaMaker
             saveFileDialog.Filter = "PNG Files|*.png";
             if (saveFileDialog.ShowDialog() == true)
             {
-                Canvas imageCanvas = CreatePrintCanvas(); // フルサイズのキャンバスを作成
+                Canvas imageCanvas = CreatePrintCanvas();
                 SaveCanvasAsImage(imageCanvas, saveFileDialog.FileName);
             }
         }
 
+        /// <summary>
+        /// Handles the Print All button click event. Prints all addresses from the Excel file.
+        /// </summary>
         private void PrintAllButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(excelFilePath))
@@ -113,7 +128,7 @@ namespace NengaMaker
                         recipientAddress1 = worksheet.Cells[row, 5].Text;
                         recipientAddress2 = worksheet.Cells[row, 6].Text;
 
-                        Canvas printCanvas = CreatePrintCanvas(); // フルサイズの印刷用キャンバスを作成
+                        Canvas printCanvas = CreatePrintCanvas();
                         string tempPngPath = System.IO.Path.GetTempFileName() + ".png";
                         SaveCanvasAsImage(printCanvas, tempPngPath);
 
@@ -122,7 +137,7 @@ namespace NengaMaker
                             string directory = Path.GetDirectoryName(baseFilePath);
                             string baseFileName = Path.GetFileNameWithoutExtension(baseFilePath);
                             string pdfFilePath = Path.Combine(directory, $"{baseFileName}_{row - 1}.pdf");
-                            ConvertPngToPdf(tempPngPath, pdfFilePath, false); // PDF作成時のメッセージ表示を抑制
+                            ConvertPngToPdf(tempPngPath, pdfFilePath, false);
                         }
                         else
                         {
@@ -138,6 +153,10 @@ namespace NengaMaker
             }
         }
 
+        /// <summary>
+        /// Creates a Canvas for printing, with specified dimensions.
+        /// </summary>
+        /// <returns>A fully prepared Canvas object for printing.</returns>
         private Canvas CreatePrintCanvas()
         {
             Canvas printCanvas = new Canvas
@@ -147,14 +166,18 @@ namespace NengaMaker
                 Background = System.Windows.Media.Brushes.White
             };
 
-            AddTextBlocksToCanvas(printCanvas, 1.0); // フルサイズでテキスト要素を追加
+            AddTextBlocksToCanvas(printCanvas, 1.0);
             return printCanvas;
         }
 
+        /// <summary>
+        /// Adds text blocks to the provided canvas based on the current recipient's information.
+        /// </summary>
+        /// <param name="canvas">The canvas to add the text blocks to.</param>
+        /// <param name="scale">The scale factor for the text blocks.</param>
         private void AddTextBlocksToCanvas(Canvas canvas, double scale)
         {
-            // 文字単位の設定
-            double fontSize = 60 * scale; // スケールに応じたフォントサイズ
+            double fontSize = 60 * scale;
             double recipientPostalCodeX = 550 * scale;
             double recipientPostalCodeY = 140 * scale;
             double recipientAddressFontSize = 70 * scale;
@@ -166,7 +189,6 @@ namespace NengaMaker
             double recipientNameX = recipientAddressX2 - (200 * scale);
             double recipientNameY = recipientAddressY2 + (100 * scale);
 
-            // sender settings
             double senderPostCodeFontSize = 40 * scale;
             double senderAddressFontSize = 50 * scale;
             double senderNameFontSize = 50 * scale;
@@ -179,39 +201,42 @@ namespace NengaMaker
             double senderNameX = senderAddressX2 - (100 * scale);
             double senderNameY = senderAddressY2 + (100 * scale);
 
-            // 受取人郵便番号（赤枠に収めるための位置設定）
             AddPostalCodeToCanvas(canvas, recipientPostalCode, recipientPostalCodeX, recipientPostalCodeY, fontSize, scale);
-
-            // 受取人住所と氏名（縦書き）
             AddVerticalTextToCanvas(canvas, recipientAddress1, recipientAddressFontSize, recipientAddressX, recipientAddressY);
             AddVerticalTextToCanvas(canvas, recipientAddress2, recipientAddressFontSize, recipientAddressX2, recipientAddressY2);
             AddVerticalTextToCanvas(canvas, recipientName + " 様", recipientNameFontSize, recipientNameX, recipientNameY);
 
-            // 差出人郵便番号（赤枠に収めるための位置設定）
             string senderPostalCode = SenderPostalCodeTextBox.Text;
             string senderAddress1 = SenderAddress1TextBox.Text;
             string senderAddress2 = SenderAddress2TextBox.Text;
             string senderName = SenderNameTextBox.Text;
 
             AddSenderPostalCodeToCanvas(canvas, senderPostalCode, senderPostalCodeX, senderPostalCodeY, senderPostCodeFontSize, scale);
-
-            // 差出人住所と氏名（縦書き）
             AddVerticalTextToCanvas(canvas, senderAddress1, senderAddressFontSize, senderAddressX, senderAddressY);
             AddVerticalTextToCanvas(canvas, senderAddress2, senderAddressFontSize, senderAddressX2, senderAddressY2);
             AddVerticalTextToCanvas(canvas, senderName, senderNameFontSize, senderNameX, senderNameY);
         }
 
+        /// <summary>
+        /// Adds the postal code to the provided canvas at the specified location.
+        /// </summary>
+        /// <param name="canvas">The canvas to add the postal code to.</param>
+        /// <param name="postalCode">The postal code to add.</param>
+        /// <param name="startX">The starting X coordinate.</param>
+        /// <param name="startY">The starting Y coordinate.</param>
+        /// <param name="fontSize">The font size to use for the postal code.</param>
+        /// <param name="scale">The scale factor for positioning and font size.</param>
         private void AddPostalCodeToCanvas(Canvas canvas, string postalCode, double startX, double startY, double fontSize, double scale)
         {
-            postalCode = postalCode.Replace("-", ""); // ハイフンを削除
-            double spacing = 80 * scale; // 各数字の間隔
+            postalCode = postalCode.Replace("-", "");
+            double spacing = 80 * scale;
 
             for (int i = 0; i < postalCode.Length; i++)
             {
                 TextBlock textBlock = new TextBlock
                 {
                     Text = postalCode[i].ToString(),
-                    FontSize = fontSize, // 指定されたフォントサイズ
+                    FontSize = fontSize,
                     Margin = new Thickness(0),
                     FontWeight = FontWeights.Bold
                 };
@@ -221,17 +246,26 @@ namespace NengaMaker
             }
         }
 
+        /// <summary>
+        /// Adds the sender's postal code to the provided canvas at the specified location.
+        /// </summary>
+        /// <param name="canvas">The canvas to add the postal code to.</param>
+        /// <param name="postalCode">The postal code to add.</param>
+        /// <param name="startX">The starting X coordinate.</param>
+        /// <param name="startY">The starting Y coordinate.</param>
+        /// <param name="fontSize">The font size to use for the postal code.</param>
+        /// <param name="scale">The scale factor for positioning and font size.</param>
         private void AddSenderPostalCodeToCanvas(Canvas canvas, string postalCode, double startX, double startY, double fontSize, double scale)
         {
-            postalCode = postalCode.Replace("-", ""); // ハイフンを削除
-            double spacing = 50 * scale; // 各数字の間隔
+            postalCode = postalCode.Replace("-", "");
+            double spacing = 50 * scale;
 
             for (int i = 0; i < postalCode.Length; i++)
             {
                 TextBlock textBlock = new TextBlock
                 {
                     Text = postalCode[i].ToString(),
-                    FontSize = fontSize, // 指定されたフォントサイズ
+                    FontSize = fontSize,
                     Margin = new Thickness(0),
                     FontWeight = FontWeights.Bold
                 };
@@ -241,6 +275,14 @@ namespace NengaMaker
             }
         }
 
+        /// <summary>
+        /// Adds vertical text to the provided canvas.
+        /// </summary>
+        /// <param name="canvas">The canvas to add the text to.</param>
+        /// <param name="text">The text to add.</param>
+        /// <param name="fontSize">The font size to use for the text.</param>
+        /// <param name="x">The starting X coordinate.</param>
+        /// <param name="y">The starting Y coordinate.</param>
         private void AddVerticalTextToCanvas(Canvas canvas, string text, double fontSize, double x, double y)
         {
             for (int i = 0; i < text.Length; i++)
@@ -256,15 +298,18 @@ namespace NengaMaker
                 if (text[i] == 'ー' || text[i] == '-')
                 {
                     textBlock.RenderTransform = new RotateTransform(90);
-                    textBlock.RenderTransformOrigin = new Point(0.5, 0.5); // 回転の中心を設定
+                    textBlock.RenderTransformOrigin = new Point(0.5, 0.5);
                 }
 
                 canvas.Children.Add(textBlock);
                 Canvas.SetLeft(textBlock, x);
-                Canvas.SetTop(textBlock, y + i * fontSize); // 各文字を縦に配置
+                Canvas.SetTop(textBlock, y + i * fontSize);
             }
         }
 
+        /// <summary>
+        /// Handles the Load From Excel button click event. Loads recipient data from the selected Excel file.
+        /// </summary>
         private void LoadFromExcelButton_Click(object sender, RoutedEventArgs e)
         {
             var openFileDialog = new Microsoft.Win32.OpenFileDialog();
@@ -278,19 +323,20 @@ namespace NengaMaker
                 {
                     var worksheet = package.Workbook.Worksheets[0];
 
-                    // 2行目からデータを読み込む（見出し行を飛ばす）
                     recipientName = worksheet.Cells[2, 2].Text;
                     recipientFurigana = worksheet.Cells[2, 3].Text;
                     recipientPostalCode = worksheet.Cells[2, 4].Text;
                     recipientAddress1 = worksheet.Cells[2, 5].Text;
                     recipientAddress2 = worksheet.Cells[2, 6].Text;
 
-                    // プレビューを更新
                     UpdatePreview();
                 }
             }
         }
 
+        /// <summary>
+        /// Handles the Update Preview button click event. Updates the preview canvas with the current recipient data.
+        /// </summary>
         private void UpdatePreviewButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(excelFilePath))
@@ -302,12 +348,18 @@ namespace NengaMaker
             UpdatePreview();
         }
 
+        /// <summary>
+        /// Updates the preview canvas by clearing it and adding the current recipient's data.
+        /// </summary>
         private void UpdatePreview()
         {
             previewCanvas.Children.Clear();
-            AddTextBlocksToCanvas(previewCanvas, 1.0 / 3.0); // 1/3スケールでテキスト要素を追加
+            AddTextBlocksToCanvas(previewCanvas, 1.0 / 3.0);
         }
 
+        /// <summary>
+        /// Handles the GotFocus event for the text boxes. Clears placeholder text when focused.
+        /// </summary>
         private void TextBox_GotFocus(object sender, RoutedEventArgs e)
         {
             TextBox textBox = sender as TextBox;
@@ -318,6 +370,9 @@ namespace NengaMaker
             }
         }
 
+        /// <summary>
+        /// Handles the LostFocus event for the text boxes. Restores placeholder text when the field is empty.
+        /// </summary>
         private void TextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             TextBox textBox = sender as TextBox;
@@ -331,6 +386,11 @@ namespace NengaMaker
             }
         }
 
+        /// <summary>
+        /// Saves the provided canvas as a PNG image to the specified file path.
+        /// </summary>
+        /// <param name="canvas">The canvas to save as an image.</param>
+        /// <param name="filePath">The file path to save the image to.</param>
         private void SaveCanvasAsImage(Canvas canvas, string filePath)
         {
             RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
@@ -348,6 +408,12 @@ namespace NengaMaker
             }
         }
 
+        /// <summary>
+        /// Converts a PNG image to a PDF document and saves it to the specified file path.
+        /// </summary>
+        /// <param name="pngPath">The file path of the PNG image to convert.</param>
+        /// <param name="pdfPath">The file path to save the PDF to. If null, prompts the user to select a location.</param>
+        /// <param name="showMessage">Whether to show a message after saving the PDF.</param>
         private void ConvertPngToPdf(string pngPath, string pdfPath = null, bool showMessage = true)
         {
             if (pdfPath == null)
@@ -381,10 +447,15 @@ namespace NengaMaker
                 MessageBox.Show($"PDFが保存されました: {pdfPath}", "保存完了", MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
-            // 一時PNGファイルを削除
             File.Delete(pngPath);
         }
 
+        /// <summary>
+        /// Displays a print dialog and handles the print operation, converting the canvas to PDF if necessary.
+        /// </summary>
+        /// <param name="tempPngPath">The temporary PNG file path for printing.</param>
+        /// <param name="pdfPath">The file path to save the PDF to, if printing to PDF.</param>
+        /// <param name="showMessage">Whether to show a message after saving the PDF.</param>
         private void ShowPrintDialog(string tempPngPath, string pdfPath = null, bool showMessage = true)
         {
             PrintDialog printDialog = new PrintDialog();
