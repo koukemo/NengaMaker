@@ -1,0 +1,71 @@
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="NengaMaker" Language="1033" Version="1.0.0.0" Manufacturer="YourCompany" UpgradeCode="d193c42c-bcf9-43ce-8f3d-3cb7a437a6f7">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate />
+
+    <Feature Id="ProductFeature" Title="NengaMaker" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="NengaMaker" />
+      </Directory>
+    </Directory>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="MainExecutable" Guid="{9C600239-0443-44D4-BF5B-3841B9F3D08C}">
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\NengaMaker.exe" KeyPath="yes" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\NengaMaker.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\NengaMaker.pdb" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\NengaMaker.deps.json" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\NengaMaker.runtimeconfig.json" />
+      </Component>
+      <Component Id="EPPlusLibraries" Guid="{D3E72A77-1735-4A44-9C3D-64391A1A4498}">
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\EPPlus.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\EPPlus.Interfaces.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\EPPlus.System.Drawing.dll" />
+      </Component>
+      <Component Id="PdfSharpLibraries" Guid="{D1A2F7B1-29D3-4F6C-B5A3-7B2D9D0C218F}">
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\PdfSharp.Charting.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\PdfSharp.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\PdfSharp.Quality.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\PdfSharp.Snippets.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\PdfSharp.System.dll" />
+      </Component>
+      <Component Id="MicrosoftExtensionsLibraries" Guid="{6BBDF752-ECF8-4AB4-89B3-55B47E6316F8}">
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.Configuration.Abstractions.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.Configuration.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.Configuration.FileExtensions.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.Configuration.Json.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.DependencyInjection.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.FileProviders.Abstractions.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.FileProviders.Physical.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.FileSystemGlobbing.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.Logging.Abstractions.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.Logging.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.Options.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\Microsoft.Extensions.Primitives.dll" />
+      </Component>
+      <Component Id="CultureFiles" Guid="{8F4C8EAF-A1E7-4E32-9F29-8DA8A472C9A1}">
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\de\PdfSharp.Charting.resources.dll" />
+        <File Source="C:\Users\javas\Programs\NengaMaker\NengaMaker\bin\Release\net8.0-windows\de\PdfSharp.resources.dll" />
+      </Component>
+    </DirectoryRef>
+
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="EPPlusLibraries" />
+      <ComponentRef Id="PdfSharpLibraries" />
+      <ComponentRef Id="MicrosoftExtensionsLibraries" />
+      <ComponentRef Id="CultureFiles" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>
