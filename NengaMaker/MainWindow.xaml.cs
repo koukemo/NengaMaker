@@ -22,7 +22,7 @@ namespace NengaMaker
         private string excelFilePath;
         private int rowCount;
 
-        private string templeteImagePath = "file:///C://Users/javas/Programs/NengaMaker/NengaMaker/figures/postcard_1.png";
+        private string templeteImagePath = "figures/postcard_1.png";
 
         /// <summary>
         /// Initializes the MainWindow instance and sets up the background image.
@@ -40,7 +40,11 @@ namespace NengaMaker
         private void SetBackgroundImage()
         {
             ImageBrush brush = new ImageBrush();
-            brush.ImageSource = new BitmapImage(new Uri(templeteImagePath));
+
+            string projectRoot = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName;
+            string absolutePath = Path.Combine(projectRoot, templeteImagePath);
+
+            brush.ImageSource = new BitmapImage(new Uri(absolutePath, UriKind.Absolute));
             brush.Stretch = Stretch.Uniform;
             brush.ViewportUnits = BrushMappingMode.Absolute;
             brush.Viewport = new Rect(0, 0, 394, 583);
