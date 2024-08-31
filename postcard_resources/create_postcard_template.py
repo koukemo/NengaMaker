@@ -40,7 +40,7 @@ if __name__ == "__main__":
     zip_file_path = "./postcard_psd.zip"
     
     # ZIPファイルの解凍先ディレクトリ
-    extract_directory = "./posdcard_psd"
+    extract_directory = "./postcard_psd"
     
     # PNGファイルを保存するディレクトリ
     target_directory = "../NengaMaker/figures"
